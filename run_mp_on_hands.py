@@ -22,8 +22,8 @@ def record_video_2_cams():
 
     #output video stream
     fourcc = cv.VideoWriter_fourcc(*'mp4v')
-    rec0 = cv.VideoWriter('test/test_cam0.mp4',fourcc, 30.0, (720,720))
-    rec1 = cv.VideoWriter('test/test_cam1.mp4',fourcc, 30.0, (720,720))
+    rec0 = cv.VideoWriter('data/test/test_cam0.mp4',fourcc, 30.0, (720,720))
+    rec1 = cv.VideoWriter('data/test/test_cam1.mp4',fourcc, 30.0, (720,720))
 
     recs = [rec0, rec1]
 
@@ -131,5 +131,5 @@ if __name__ == '__main__':
 
     kpts_cam0, kpts_cam1 = record_video_2_cams()
 
-    write_keypoints_to_disk('test/kpts_cam0.dat', kpts_cam0)
-    write_keypoints_to_disk('test/kpts_cam1.dat', kpts_cam1)
+    write_keypoints_to_disk('data/test/kpts_cam0.dat', kpts_cam0)
+    write_keypoints_to_disk('data/test/kpts_cam1.dat', kpts_cam1)
