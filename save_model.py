@@ -63,15 +63,15 @@ def train_save_knn(X, y):
 
     neigh  = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=10))
     neigh.fit(X, y)
-    filename = '/model/knn_model.sav'
-    pickle.dump(model, open(filename, 'wb'))
+    filename = 'model/knn_model.sav'
+    pickle.dump(neigh, open(filename, 'wb'))
 
 
 def train_save_svc(X, y):
     clf = make_pipeline(StandardScaler(), SVC(gamma='auto'))
     clf.fit(X, y)
-    filename = '/model/svc_model.sav'
-    pickle.dump(model, open(filename, 'wb'))
+    filename = 'model/svc_model.sav'
+    pickle.dump(clf, open(filename, 'wb'))
 
 
 if __name__ == '__main__':
