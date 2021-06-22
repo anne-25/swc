@@ -76,4 +76,9 @@ def train_save_svc(X, y):
 
 if __name__ == '__main__':
     X, y = dataset()
-    train_save_svc(X_train, X_test, y_train, y_test)
+
+    #save svc model
+    train_save_svc(X, y)
+
+    #save knn model
+    train_save_knn(X, y)
