@@ -3,6 +3,8 @@ import mediapipe as mp
 import numpy as np
 import sys
 from utils import DLT, get_projection_matrix, write_keypoints_to_disk
+import pickle
+
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
@@ -26,6 +28,13 @@ def run_mp(input_stream1, input_stream2, P0, P1):
 
     #load knn or svm model here
 
+    #load svm_model
+    filename = 'model/svc_model.sav'
+
+    #load knn_model
+    # filename = 'model/knn_model.sav'
+
+    model = pickle.load(open(filename, 'wb'))
 
     #containers for detected keypoints for each camera
     kpts_cam0 = []
