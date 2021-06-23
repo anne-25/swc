@@ -53,7 +53,7 @@ def train_knn(datas, labels):
     print(neigh.score(X_test, y_test))
 
 
-    pass
+    
 
 def train_svc(datas, labels):
 
