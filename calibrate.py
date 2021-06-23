@@ -2,7 +2,8 @@ import cv2 as cv
 import glob
 import numpy as np
 import datetime
-from utils import Annotation, _make_homogeneous_rep_matrix, DLT
+from utils import _make_homogeneous_rep_matrix, DLT
+# from utils import Annotation
 #import matplotlib.pyplot as plt
 
 camera_id_to_loc = {0:4, 1:10}
@@ -231,6 +232,8 @@ def save_camera_intrinsics(camera_matrix, distortion_coefs, camera_id):
         outf.write(str(en) + ' ')
     outf.write('\n')
 
+    outf.close()
+
 def save_camera_to_camera_coord_transforms(rot, trans, camera_id):
 
     outf = open('camera_parameters/relative_transform_c' + str(camera_id) + '.dat', 'w')
@@ -411,7 +414,8 @@ if __name__ == '__main__':
     #     distortion_coefs.append(dist)
     #
     # rot, trans = stereo_calibrate(camera_matrices[0], distortion_coefs[0], camera_matrices[1], distortion_coefs[1], 'calibration_frames/frame_c0*', 'calibration_frames/frame_c1*')
-    # save_camera_to_camera_coord_transforms(rot, trans, i)
+    # for i in range(2):
+    #     save_camera_to_camera_coord_transforms(rot, trans, i)
     # quit()
 
     """choose world space origin"""
