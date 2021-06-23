@@ -55,7 +55,7 @@ def visualize_3d(kpts_cam0, P0, kpts_cam1, P1):
     p3ds_rotated = np.array(p3ds_rotated)
 
     #save to file
-    outf = open('test/test_3d.dat', 'w')
+    outf = open('data/test/test_3d.dat', 'w')
     for frame_kpts in p3ds_rotated:
         for kpt in frame_kpts:
             kpt = [str(k) for k in kpt]
@@ -97,8 +97,8 @@ def visualize_3d(kpts_cam0, P0, kpts_cam1, P1):
 
 if __name__ == '__main__':
 
-    kpts_cam0 = read_keypoints('test/kpts_cam0.dat')
-    kpts_cam1 = read_keypoints('test/kpts_cam1.dat')
+    kpts_cam0 = read_keypoints('data/test/kpts_cam0.dat')
+    kpts_cam1 = read_keypoints('data/test/kpts_cam1.dat')
 
     P0 = get_projection_matrix(0)
     P1 = get_projection_matrix(1)

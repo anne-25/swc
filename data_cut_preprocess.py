@@ -20,7 +20,7 @@ def read_file(filename):
 def cut_preprocess(old_dat, length):
     new_dat = [old_dat[i] for i in range(len(old_dat) - length)]
 
-    outf = open('test/new_dist_kpts.csv', 'w')
+    outf = open('data/test/new_dist_kpts.csv', 'w')
     for dist in new_dat:
         for i in range(len(dist) - 1):
             outf.write(str(dist[i]) + ',')

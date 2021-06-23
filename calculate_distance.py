@@ -28,7 +28,7 @@ def calculate_distance(dat):
         # print(dist)
     dist = np.array(dist)
     #save to file
-    outf = open('test/dist_kpts.dat', 'w')
+    outf = open('data/test/dist_kpts.dat', 'w')
     for frame_dist in dist:
         for i in range(len(frame_dist)-1) :
             outf.write(str(frame_dist[i]) + ' ')
