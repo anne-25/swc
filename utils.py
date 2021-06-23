@@ -1,6 +1,5 @@
 import numpy as np
-#import matplotlib.pyplot as plt
-import cv2 as cv
+
 
 def _make_homogeneous_rep_matrix(R, t):
     P = np.zeros((4,4))
@@ -9,6 +8,7 @@ def _make_homogeneous_rep_matrix(R, t):
     P[3,3] = 1
     return P
 
+#direct linear transform
 def DLT(P1, P2, point1, point2):
 
     A = [point1[1]*P1[2,:] - P1[1,:],
@@ -24,95 +24,83 @@ def DLT(P1, P2, point1, point2):
     from scipy import linalg
     U, s, Vh = linalg.svd(B, full_matrices = False)
 
-    print('Triangulated point: ')
-    print(Vh[3,0:3]/Vh[3,3])
+    #print('Triangulated point: ')
+    #print(Vh[3,0:3]/Vh[3,3])
     return Vh[3,0:3]/Vh[3,3]
 
+def read_camera_parameters(camera_id):
 
-class Annotation:
+    inf = open('camera_parameters/c' + str(camera_id) + '.dat', 'r')
 
-    #parameters used to draw the Rectangle
-    mouse_down = False
+    cmtx = []
+    dist = []
 
-    num_keypoints = 21
+    line = inf.readline()
+    for _ in range(3):
+        line = inf.readline().split()
+        line = [float(en) for en in line]
+        cmtx.append(line)
 
-    edges = [[0,1],[1,2],[2,3],[3,4],
-             [0,5],[5,6],[6,7],[7,8],
-             [0,9],[9,10],[10,11],[11, 12],
-             [0,13],[13,14],[14,15],[15,16],
-             [0,17],[17,18],[18,19],[19,20]
-            ]
+    line = inf.readline()
+    line = inf.readline().split()
+    line = [float(en) for en in line]
+    dist.append(line)
 
-    #indices to connect
-    thumb_f = [[0,1],[1,2],[2,3],[3,4]]
-    index_f = [[0,5],[5,6],[6,7],[7,8]]
-    middle_f = [[0,9],[9,10],[10,11],[11, 12]]
-    ring_f = [[0,13],[13,14],[14,15],[15,16]]
-    pinkie_f = [[0,17],[17,18],[18,19],[19,20]]
-    fingers = [thumb_f, index_f, middle_f, ring_f, pinkie_f]
-    fingers_colors = [(0,0,0), (0,0,255), (255,0,0), (255,20,147), (0,255,0)]
+    return np.array(cmtx), np.array(dist)
 
-    def __init__(self, img):
-        self.img = img
-        self.img_original = self.img.copy()
-        self.saved_coords = []
-        self.kpt_id = 0
-        self._x = -1
-        self._y = -1
+def read_rotation_translation(camera_id, savefolder = 'camera_parameters/'):
 
-    def Getkpts(self):
-        while(len(self.saved_coords)) != self.num_keypoints:
-            self.saved_coords = []
-            self.img = self.img_original.copy()
-            self._promptForCrop('Click body part')
+    inf = open(savefolder + 'rot_trans_c'+ str(camera_id) + '.dat', 'r')
 
-        self._draw_stick_figure()
-        return self.saved_coords
+    inf.readline()
+    rot = []
+    trans = []
+    for _ in range(3):
+        line = inf.readline().split()
+        line = [float(en) for en in line]
+        rot.append(line)
 
+    inf.readline()
+    for _ in range(3):
+        line = inf.readline().split()
+        line = [float(en) for en in line]
+        trans.append(line)
 
-    def _promptForCrop(self, text = ''):
+    inf.close()
+    return np.array(rot), np.array(trans)
 
-        cv.namedWindow('frame')
-        cv.setMouseCallback('frame', self.onrelease)
+def _convert_to_homogeneous(pts):
+    pts = np.array(pts)
+    if len(pts.shape) > 1:
+        w = np.ones((pts.shape[0], 1))
+        return np.concatenate([pts, w], axis = 1)
+    else:
+        return np.concatenate([pts, [1]], axis = 0)
 
-        while(1):
-            cv.imshow('frame', self.img)
-            k = cv.waitKey(20) & 0xFF
-            if k == 27:
-                break
+def get_projection_matrix(camera_id):
 
-            if len(self.saved_coords) == self.num_keypoints:
-                break
+    #read camera parameters
+    cmtx, dist = read_camera_parameters(camera_id)
+    rvec, tvec = read_rotation_translation(camera_id)
 
-        cv.destroyAllWindows()
+    #calculate projection matrix
+    P = cmtx @ _make_homogeneous_rep_matrix(rvec, tvec)[:3,:]
+    return P
 
+def write_keypoints_to_disk(filename, kpts):
+    fout = open(filename, 'w')
 
-    def _draw_stick_figure(self):
+    for frame_kpts in kpts:
+        for kpt in frame_kpts:
+            if len(kpt) == 2:
+                fout.write(str(kpt[0]) + ' ' + str(kpt[1]) + ' ')
+            else:
+                fout.write(str(kpt[0]) + ' ' + str(kpt[1]) + ' ' + str(kpt[2]) + ' ')
 
-        for finger, color in zip(self.fingers, self.fingers_colors):
-            for _c in finger:
-                cv.line(self.img, (self.saved_coords[_c[0]][0], self.saved_coords[_c[0]][1]),
-                                  (self.saved_coords[_c[1]][0], self.saved_coords[_c[1]][1]), color, 1)
-
-        cv.imshow('frame', self.img)
-        while True:
-            k = cv.waitKey(1000) # change the value from the original 0 (wait forever) to something appropriate
-            if k == 27:
-                break
-            if cv.getWindowProperty('frame', cv.WND_PROP_VISIBLE) < 1:
-                break
-
-        cv.destroyAllWindows()
-
-
-    def onrelease(self, event, x, y, flags, param):
-        if event == cv.EVENT_LBUTTONUP:
-            cv.circle(self.img,(x,y), 1,(255,0,0),-1)
-            self.saved_coords.append([x,y])
-
+        fout.write('\n')
+    fout.close()
 
 if __name__ == '__main__':
-    img = cv.imread('testing/frame_c0_0.png', 1)
-    anno = Annotation(img)
-    kpts = anno.Getkpts()
-    print(kpts)
+
+    P2 = get_projection_matrix(0)
+    P1 = get_projection_matrix(1)
