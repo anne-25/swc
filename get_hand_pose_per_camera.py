@@ -4,12 +4,17 @@ import numpy as np
 import sys
 from utils import DLT, get_projection_matrix, write_keypoints_to_disk
 import pickle
+from calibrate import get_projection_matrix as get_projection_matrix2
+import matplotlib.pyplot as plt
 
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
 frame_shape = [720, 1280]
+
+prediction_names = ['point', 'rock', 'scissors', 'paper', 'call',
+                    'cylinder', 'good', 'ok', 'three', 'cross']
 
 def run_mp(input_stream1, input_stream2, P0, P1):
     #input video stream
@@ -29,12 +34,12 @@ def run_mp(input_stream1, input_stream2, P0, P1):
     #load knn or svm model here
 
     #load svm_model
-    filename = 'model/svc_model.sav'
+    filename = 'model/knn_model.sav'
 
     #load knn_model
     # filename = 'model/knn_model.sav'
 
-    model = pickle.load(open(filename, 'wb'))
+    model = pickle.load(open(filename, 'rb'))
 
     #containers for detected keypoints for each camera
     kpts_cam0 = []
@@ -122,10 +127,26 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         """Add hand pose estimation code here"""
 
         #calculate distance between fingers
-
+        X_distance = []
+        points = [frame_p3ds[0], frame_p3ds[4], frame_p3ds[8], frame_p3ds[12], frame_p3ds[16], frame_p3ds[20]]
+        for idx, p1 in enumerate(points):
+            if idx == 5: break
+            for i in range(idx + 1, len(points)):
+                u = p1 - points[i]
+                u = np.linalg.norm(u)
+                X_distance.append(u)
+        u = frame_p3ds[2] - frame_p3ds[4]
+        u = np.linalg.norm(u)
+        X_distance.append(u)
+        for i in range(4):
+            u = frame_p3ds[5 + (i * 4)] - frame_p3ds[8 + (i * 4)]
+            u = np.linalg.norm(u)
+            X_distance.append(u)
+        X_distance = np.array(X_distance).reshape((1,-1))
         #input to knn or svm and predict
 
         pose_prediction = model.predict(X_distance)
+
 
         kpts_3d.append(frame_p3ds)
 
@@ -142,8 +163,10 @@ def run_mp(input_stream1, input_stream2, P0, P1):
         if results1.multi_hand_landmarks:
           for hand_landmarks in results1.multi_hand_landmarks:
             mp_drawing.draw_landmarks(frame1, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+        cv.putText(frame1,text=prediction_names[pose_prediction[0]],org=(150, 100),fontFace=cv.FONT_HERSHEY_SIMPLEX,fontScale=3.0,color=(0, 0, 255),thickness=5,lineType=cv.LINE_4)
         cv.imshow('cam1', frame1)
         cv.imshow('cam0', frame0)
+
 
         k = cv.waitKey(1)
         if k & 0xFF == 27: break #27 is ESC key.
@@ -165,8 +188,8 @@ if __name__ == '__main__':
         input_stream2 = int(sys.argv[2])
 
     #projection matrices
-    P0 = get_projection_matrix(0)
-    P1 = get_projection_matrix(1)
+    P0 = get_projection_matrix2(0)
+    P1 = get_projection_matrix2(1)
 
     kpts_cam0, kpts_cam1, kpts_3d = run_mp(input_stream1, input_stream2, P0, P1)
 
