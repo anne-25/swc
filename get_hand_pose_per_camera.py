@@ -6,6 +6,7 @@ from utils import DLT, get_projection_matrix, write_keypoints_to_disk
 import pickle
 from calibrate import get_projection_matrix as get_projection_matrix2
 import matplotlib.pyplot as plt
+from pointing import calculate_vector
 
 
 mp_drawing = mp.solutions.drawing_utils
@@ -147,6 +148,8 @@ def run_mp(input_stream1, input_stream2, P0, P1):
 
         pose_prediction = model.predict(X_distance)
 
+        if pose_prediction[0] == 0: # pose_prediction=='point'
+            point_vect = calculate_vector(frame_p3ds)
 
         kpts_3d.append(frame_p3ds)
 
